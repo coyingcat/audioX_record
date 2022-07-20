@@ -24,11 +24,14 @@ public class SwiftAudioRecorderPlugin: NSObject, FlutterPlugin, AVAudioRecorderD
             mExtension = dic["extension"] as? String ?? ""
             mPath = dic["path"] as? String ?? ""
             startTime = Date()
+            let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
             if mPath == "" {
-                let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
                 mPath = documentsPath + "/" + String(Int(startTime.timeIntervalSince1970)) + ".m4a"
-                print("path: " + mPath)
             }
+            else{
+                mPath = documentsPath + "/" + mPath
+            }
+            print("path: " + mPath)
             let settings = [
                 AVFormatIDKey: getOutputFormatFromString(mExtension),
                 AVSampleRateKey: 12000,

@@ -181,17 +181,47 @@ const kPaused = "暂停";
 class _MyHomePageState extends State<MyHomePage> {
   String name = kStarted;
 
-  void _audioGoOn() {
-    setState(() {
-      if (name == kPaused) {
-        name = "继续录音";
-      } else {
-        name = kPaused;
-      }
-    });
+  Future<void> _audioGoOn() async {
+    switch (name) {
+      case kStarted:
+        // Check permissions before starting
+        bool hasPermissions = await AudioRecorder.hasPermissions;
+        if (hasPermissions) {
+          // Get the state of the recorder
+          bool isRecording = await AudioRecorder.isRecording;
+          if (isRecording == false) {
+            await AudioRecorder.start("333", AudioOutputFormat.AAC);
+            setState(() {
+              name = kPaused;
+            });
+          }
+        }
+        break;
+      case kPaused:
+        setState(() {
+          name = "继续录音";
+        });
+        break;
+      default:
+        setState(() {
+          name = kPaused;
+        });
+        break;
+    }
   }
 
-  void _audioEnd() {
+  Future<void> _audioEnd() async {
+// Stop recording
+    Recording? recording = await AudioRecorder.stop();
+    if (recording != null) {
+      String path = recording.path;
+      AudioOutputFormat fmt = recording.audioOutputFormat;
+      String ext = recording.extension;
+      Duration duration = recording.duration;
+      print(
+          "Path : ${path},  Format : ${fmt},  Duration : ${duration},  Extension : ${ext},");
+    }
+
     setState(() {
       name = kStarted;
     });
