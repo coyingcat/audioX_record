@@ -44,6 +44,14 @@ class AudioRecorder {
         .invokeMethod('start', {"path": path, "extension": extension});
   }
 
+  static Future<void> pause() async {
+    return _channel.invokeMethod('pause');
+  }
+
+  static Future<void> resume() async {
+    return _channel.invokeMethod('resume');
+  }
+
   static Future<Recording?> stop() async {
     Map<String, dynamic> response =
         Map.from(await _channel.invokeMethod('stop'));
@@ -190,7 +198,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // Get the state of the recorder
           bool isRecording = await AudioRecorder.isRecording;
           if (isRecording == false) {
-            await AudioRecorder.start("333", AudioOutputFormat.AAC);
+            await AudioRecorder.start("10100", AudioOutputFormat.AAC);
             setState(() {
               name = kPaused;
             });
@@ -198,11 +206,13 @@ class _MyHomePageState extends State<MyHomePage> {
         }
         break;
       case kPaused:
+        await AudioRecorder.pause();
         setState(() {
           name = "继续录音";
         });
         break;
       default:
+        await AudioRecorder.resume();
         setState(() {
           name = kPaused;
         });

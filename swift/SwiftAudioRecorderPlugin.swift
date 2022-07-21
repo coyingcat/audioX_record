@@ -8,7 +8,7 @@ public class SwiftAudioRecorderPlugin: NSObject, FlutterPlugin, AVAudioRecorderD
     var mExtension = ""
     var mPath = ""
     var startTime: Date!
-    var audioRecorder: AVAudioRecorder!
+    var audioRecorder: AVAudioRecorder?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "audio_recorder", binaryMessenger: registrar.messenger())
@@ -42,18 +42,25 @@ public class SwiftAudioRecorderPlugin: NSObject, FlutterPlugin, AVAudioRecorderD
                 try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playAndRecord, options: AVAudioSession.CategoryOptions.defaultToSpeaker)
                 try AVAudioSession.sharedInstance().setActive(true)
 
-                audioRecorder = try AVAudioRecorder(url: URL(string: mPath)!, settings: settings)
-                audioRecorder.delegate = self
-                audioRecorder.record()
+                let recorder = try AVAudioRecorder(url: URL(string: mPath)!, settings: settings)
+                recorder.delegate = self
+                recorder.record()
+                audioRecorder = recorder
             } catch {
                 print("fail")
                 result(FlutterError(code: "", message: "Failed to record", details: nil))
             }
             isRecording = true
             result(nil)
+        case "pause":
+            audioRecorder?.pause()
+            result(nil)
+        case "resume":
+            audioRecorder?.record()
+            result(nil)
         case "stop":
             print("stop")
-            audioRecorder.stop()
+            audioRecorder?.stop()
             audioRecorder = nil
             let duration = Int(Date().timeIntervalSince(startTime as Date) * 1000)
             isRecording = false
