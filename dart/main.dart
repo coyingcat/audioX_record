@@ -5,6 +5,7 @@ import 'package:file/local.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
+import 'package:permission/permission.dart';
 
 class AudioRecorder {
   static const MethodChannel _channel = const MethodChannel('audio_recorder');
@@ -31,6 +32,7 @@ class AudioRecorder {
           path += extension;
         }
       }
+      print(1111111);
       File file = fs.file(path);
       if (await file.exists()) {
         throw new Exception("A file already exists at the path :" + path);
@@ -185,6 +187,7 @@ class MyHomePage extends StatefulWidget {
 
 const kStarted = "开始录音";
 const kPaused = "暂停";
+const kEnd = "结束录音";
 
 class _MyHomePageState extends State<MyHomePage> {
   String name = kStarted;
@@ -194,14 +197,35 @@ class _MyHomePageState extends State<MyHomePage> {
       case kStarted:
         // Check permissions before starting
         bool hasPermissions = await AudioRecorder.hasPermissions;
+        print(hasPermissions);
         if (hasPermissions) {
           // Get the state of the recorder
           bool isRecording = await AudioRecorder.isRecording;
           if (isRecording == false) {
-            await AudioRecorder.start("10100", AudioOutputFormat.AAC);
+            print(1112221111);
+            await AudioRecorder.start("101101", AudioOutputFormat.AAC);
+
             setState(() {
-              name = kPaused;
+              if (Platform.isIOS) {
+                name = kPaused;
+              } else {
+                name = kEnd;
+              }
             });
+          }
+        } else {
+          List<Permissions> onePermitArray =
+              await Permission.requestPermissions([PermissionName.Microphone]);
+          switch (onePermitArray[0].permissionStatus) {
+            case PermissionStatus.allow:
+            case PermissionStatus.always:
+            case PermissionStatus.whenInUse:
+              await Permission.requestPermissions([PermissionName.Storage]);
+              break;
+            default:
+              print(111222);
+              await Permission.requestPermissions([PermissionName.Microphone]);
+              break;
           }
         }
         break;
@@ -239,20 +263,27 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final VoidCallback tapFirst;
+    if (Platform.isAndroid && name == kEnd) {
+      tapFirst = _audioEnd;
+    } else {
+      tapFirst = _audioGoOn;
+    }
     List<Widget> views = [
       ElevatedButton(
         child: Text(
           name,
           style: Theme.of(context).textTheme.headline4,
         ),
-        onPressed: _audioGoOn,
-      ),
+        onPressed: tapFirst,
+      )
     ];
-    if (name != kStarted) {
+
+    if (Platform.isIOS && name != kStarted) {
       views.add(SizedBox(height: 80));
       views.add(ElevatedButton(
         child: Text(
-          "结束录音",
+          kEnd,
           style: Theme.of(context).textTheme.headline4,
         ),
         onPressed: _audioEnd,

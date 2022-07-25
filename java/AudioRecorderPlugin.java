@@ -64,15 +64,19 @@ public class AudioRecorderPlugin implements FlutterPlugin, MethodCallHandler {
     switch (call.method) {
       case "start":
         Log.d(LOG_TAG, "Start");
+        Log.d(LOG_TAG, "11111____");
         String path = call.argument("path");
         mExtension = call.argument("extension");
         startTime = Calendar.getInstance().getTime();
         if (path != null) {
-          mFilePath = path;
+
+          mFilePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + path;
         } else {
+          Log.d(LOG_TAG, "11111____222");
           String fileName = String.valueOf(startTime.getTime());
           mFilePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + fileName + mExtension;
         }
+
         Log.d(LOG_TAG, mFilePath);
         startRecording();
         isRecording = true;
